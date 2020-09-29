@@ -93,7 +93,7 @@ With this pagination function, you can easily paginate messages. The function ha
 const content: string[] = [
   'This is the first page!',
   'This is the second page!',
-  'This is the thrid page!'
+  'This is the third page!'
 ]
 
 const options: PageOptions = {
@@ -130,7 +130,7 @@ const confirmationMessage: string = 'Are you sure you would like to stop the bot
 
 const options: ConfirmationOptions = {
   confirmMessage: 'Shutting down...',
-  denyMessage: 'Shutown cancelled.',
+  denyMessage: 'Shutdown cancelled.',
   time: 10000,
 }
 
