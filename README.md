@@ -4,7 +4,10 @@
 
 1. Clone this repo
     ```bash
-    $ git clone git@github.com:Benricheson101/discord.js-typescript.git
+    $ # Using SSH
+    $ git clone git@github.com:ent3r/starboard.git
+    $ # Using HTTPS
+    $ git clone https://github.com/ent3r/starboard.git
     ```
 2. Install the dependencies
     ```bash
