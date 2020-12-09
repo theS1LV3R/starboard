@@ -1,43 +1,45 @@
-import '@util/dotenv'
-import { GuildDocument } from '@types'
-import { ClientOptions, Snowflake } from 'discord.js'
+import "./util/dotenv";
+import { GuildDocument } from "./types";
+import { ClientOptions, Snowflake } from "discord.js";
 
-export const token = process.env.TOKEN
+export const token = process.env.TOKEN;
 
 export const constants = {
-  name: 'ts-bot',
-  prefix: '/',
+  name: "ts-bot",
+  prefix: "!",
   colors: {
-    default: '#286ece'
+    default: "#286ece",
   },
   errors: {
-    generic: ':x: An error occurred.'
-  }
-}
+    generic: ":x: An error occurred.",
+  },
+};
 
 /**
  * Make a new guild document
  * @param {Snowflake} id The guild's id
  */
-export function defaultGuildDocument (id: Snowflake): GuildDocument {
+export function defaultGuildDocument(id: Snowflake): GuildDocument {
   return {
     id,
     starboards: [],
     config: {
-      prefix: constants.prefix
-    }
-  }
+      prefix: constants.prefix,
+    },
+  };
 }
 
 export const clientOptions: ClientOptions = {
-  disableMentions: 'all',
+  disableMentions: "all",
   startupCooldown: 5000,
-  databases: [{
-    name: constants.name,
-    url: `mongodb://localhost/${constants.name.replace(' ', '-')}`,
-    options: {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    }
-  }]
-}
+  databases: [
+    {
+      name: constants.name,
+      url: `mongodb://localhost/${constants.name.replace(" ", "-")}`,
+      options: {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      },
+    },
+  ],
+};

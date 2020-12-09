@@ -3,16 +3,12 @@ import {
   MessageReaction,
   User,
   ReactionCollector,
-  Message
-} from 'discord.js'
+  Message,
+} from "discord.js";
 
-import {
-  findBestMatch
-} from 'string-similarity'
+import { findBestMatch } from "string-similarity";
 
-import {
-  promisify
-} from 'util'
+import { promisify } from "util";
 
 //
 // Extra functions that may or may not be useful.
@@ -45,7 +41,7 @@ import {
  * await wait(5000)
  * message.channel.send('Hi')
  */
-export const wait = promisify(setTimeout)
+export const wait = promisify(setTimeout);
 
 /**
  * Paginate a message
@@ -73,79 +69,108 @@ export const wait = promisify(setTimeout)
  * }
  *
  * pages(message, content, options)
-*/
-async function pages (message: Message, content: string[] | MessageEmbed[] | Array<string | MessageEmbed>, options?: PageOptions): Promise<number> {
-  return await new Promise(async (resolve) => {
-    if (!(content instanceof Array)) throw new TypeError('Content is not an array')
-    if (!content.length) throw new Error('Content array is empty')
+ */
+async function pages(
+  message: Message,
+  content: string[] | MessageEmbed[] | Array<string | MessageEmbed>,
+  options?: PageOptions
+): Promise<number> {
+  return new Promise(async (resolve) => {
+    if (!(content instanceof Array))
+      throw new TypeError("Content is not an array");
+    if (!content.length) throw new Error("Content array is empty");
 
-    let removeReaction = options?.removeReaction ?? true
+    let removeReaction = options?.removeReaction ?? true;
 
-    if (!message.guild.me.permissions.has('MANAGE_MESSAGES')) removeReaction = false
+    if (!message.guild.me.permissions.has("MANAGE_MESSAGES"))
+      removeReaction = false;
 
     const emojis = {
-      left5: '⏪',
-      left: options?.emojis?.left ?? '⬅',
-      end: options?.emojis?.end ?? '⏹',
-      right: options?.emojis?.right ?? '➡',
-      right5: '⏩'
-    }
+      left5: "⏪",
+      left: options?.emojis?.left ?? "⬅",
+      end: options?.emojis?.end ?? "⏹",
+      right: options?.emojis?.right ?? "➡",
+      right5: "⏩",
+    };
 
-    const time = options?.time ?? 300000
-    const hideControlsSinglePage = options?.hideControlsSinglePage ?? true
-    const timeoutRemoveReactions = options?.timeoutRemoveReactions ?? true
+    const time = options?.time ?? 300000;
+    const hideControlsSinglePage = options?.hideControlsSinglePage ?? true;
+    const timeoutRemoveReactions = options?.timeoutRemoveReactions ?? true;
 
-    const jump5 = (options?.jump5 && content.length > 5) ?? content.length > 5
+    const jump5 = (options?.jump5 && content.length > 5) ?? content.length > 5;
 
     if (hideControlsSinglePage && content.length === 1) {
-      message.channel.send(content instanceof MessageEmbed ? { embed: content[0] } : content[0])
-      resolve(0)
-      return
+      message.channel.send(content[0]);
+      return;
     }
 
-    const filter = (reaction: MessageReaction, user: User): boolean => (Object.values(emojis).includes(reaction.emoji.name) || Object.values(emojis).includes(reaction.emoji.id)) && !user.bot && user.id === message.author.id
-    let page: number = options?.startPage || 0
+    const filter = (reaction: MessageReaction, user: User): boolean =>
+      (Object.values(emojis).includes(reaction.emoji.name) ||
+        Object.values(emojis).includes(reaction.emoji.id)) &&
+      !user.bot &&
+      user.id === message.author.id;
+    let page: number = options?.startPage || 0;
 
-    const msg = await message.channel.send(content[page] instanceof MessageEmbed ? { embed: content[page] } : content[page])
+    const msg = await message.channel.send(content[page]);
 
-    if (jump5) await msg.react(emojis.left5)
-    await msg.react(emojis.left)
-    await msg.react(emojis.end)
-    await msg.react(emojis.right)
-    if (jump5) await msg.react(emojis.right5)
+    if (jump5) await msg.react(emojis.left5);
+    await msg.react(emojis.left);
+    await msg.react(emojis.end);
+    await msg.react(emojis.right);
+    if (jump5) await msg.react(emojis.right5);
 
-    const collector: ReactionCollector = msg.createReactionCollector(filter, { time: time })
+    const collector: ReactionCollector = msg.createReactionCollector(filter, {
+      time: time,
+    });
 
-    collector.on('collect', ({ users, emoji: { id, name } }: MessageReaction, user: User) => {
-      if (emojis.left && (id === emojis.left || name === emojis.left)) {
-        page = page > 0 ? page - 1 : content.length - 1
-        if (removeReaction) users.remove(user.id)
-      } else if (emojis.right && (id === emojis.right || name === emojis.right)) {
-        page = page + 1 < content.length ? page + 1 : 0
-        if (removeReaction) users.remove(user.id)
-      } else if (emojis.end && (id === emojis.end || name === emojis.end)) {
-        collector.stop()
-        return
-      } else if (jump5 && emojis.left5 && (id === emojis.left5 || name === emojis.left5)) {
-        page = page - 5 < 0 ? content.length - (Math.abs(page - 5)) : page - 5
-        if (removeReaction) users.remove(user.id)
-      } else if (jump5 && emojis.right5 && (id === emojis.right5 || name === emojis.right5)) {
-        page = page + 5 > (content.length - 1) ? (page + 5) - content.length : page + 5
-        if (removeReaction) users.remove(user.id)
+    collector.on(
+      "collect",
+      ({ users, emoji: { id, name } }: MessageReaction, user: User) => {
+        if (emojis.left && (id === emojis.left || name === emojis.left)) {
+          page = page > 0 ? page - 1 : content.length - 1;
+          if (removeReaction) users.remove(user.id);
+        } else if (
+          emojis.right &&
+          (id === emojis.right || name === emojis.right)
+        ) {
+          page = page + 1 < content.length ? page + 1 : 0;
+          if (removeReaction) users.remove(user.id);
+        } else if (emojis.end && (id === emojis.end || name === emojis.end)) {
+          collector.stop();
+          return;
+        } else if (
+          jump5 &&
+          emojis.left5 &&
+          (id === emojis.left5 || name === emojis.left5)
+        ) {
+          page = page - 5 < 0 ? content.length - Math.abs(page - 5) : page - 5;
+          if (removeReaction) users.remove(user.id);
+        } else if (
+          jump5 &&
+          emojis.right5 &&
+          (id === emojis.right5 || name === emojis.right5)
+        ) {
+          page =
+            page + 5 > content.length - 1
+              ? page + 5 - content.length
+              : page + 5;
+          if (removeReaction) users.remove(user.id);
+        }
+
+        if (msg) {
+          if (content[page] instanceof MessageEmbed) msg.edit(content[page]);
+          else msg.edit(content[page], { embed: null });
+        }
       }
+    );
 
-      if (msg) {
-        if (content[page] instanceof MessageEmbed) msg.edit({ embed: content[page] })
-        else msg.edit(content[page], { embed: null })
-      }
-    })
-
-    collector.on('end', (_, reason) => {
-      if (!options?.keepOnStop) msg.delete()
-      if (timeoutRemoveReactions && options?.keepOnStop) msg.reactions.removeAll()
-      if (reason !== 'time') resolve(page)
-    })
-  })
+    collector.on("end", (_, reason) => {
+      if (!options?.keepOnStop) msg.delete();
+      if (timeoutRemoveReactions && options?.keepOnStop)
+        msg.reactions.removeAll();
+      if (reason !== "time") resolve(page);
+    });
+  });
 }
 
 /**
@@ -161,12 +186,19 @@ async function pages (message: Message, content: string[] | MessageEmbed[] | Arr
  * const match: string | null = matchString(search, strings, options)
  * // match: 'Administrator'
  */
-function matchString (search: string, mainStrings?: string[], ops?: MatchStringOptions): string | null {
-  const { bestMatchIndex, bestMatch: { rating } } = findBestMatch(search, mainStrings)
+function matchString(
+  search: string,
+  mainStrings?: string[],
+  ops?: MatchStringOptions
+): string | null {
+  const {
+    bestMatchIndex,
+    bestMatch: { rating },
+  } = findBestMatch(search, mainStrings);
 
-  if (rating < ops?.minRating) return null
+  if (rating < ops?.minRating) return null;
 
-  return mainStrings[bestMatchIndex]
+  return mainStrings[bestMatchIndex];
 }
 
 /**
@@ -190,28 +222,48 @@ function matchString (search: string, mainStrings?: string[], ops?: MatchStringO
  *
  * if (proceed) process.exit(0)
  */
-async function confirmation (message: Message, confirmationMessage: string | MessageEmbed, options?: ConfirmationOptions): Promise<boolean> {
-  const yesReaction = '✔️'
-  const noReaction = '✖️'
+async function confirmation(
+  message: Message,
+  confirmationMessage: string | MessageEmbed,
+  options?: ConfirmationOptions
+): Promise<boolean> {
+  const yesReaction = "✔️";
+  const noReaction = "✖️";
 
-  const filter = ({ emoji: { name } }: MessageReaction, { id }: User): boolean => (name === yesReaction || name === noReaction) && id === message.author.id
+  const filter = (
+    { emoji: { name } }: MessageReaction,
+    { id }: User
+  ): boolean =>
+    (name === yesReaction || name === noReaction) && id === message.author.id;
 
-  const msg = await message.channel.send(confirmationMessage)
+  const msg = await message.channel.send(confirmationMessage);
 
-  await msg.react(yesReaction)
-  await msg.react(noReaction)
+  await msg.react(yesReaction);
+  await msg.react(noReaction);
 
-  const e = (await msg.awaitReactions(filter, { max: 1, time: options?.time ?? 300000 })).first()
+  const e = (
+    await msg.awaitReactions(filter, { max: 1, time: options?.time ?? 300000 })
+  ).first();
 
-  if (options?.deleteAfterReaction) msg.delete()
-  else if (!options?.keepReactions) msg.reactions.removeAll()
+  if (options?.deleteAfterReaction) msg.delete();
+  else if (!options?.keepReactions) msg.reactions.removeAll();
 
   if (e?.emoji?.name === yesReaction) {
-    if (options?.confirmMessage && !options?.deleteAfterReaction) await msg.edit(options?.confirmMessage instanceof MessageEmbed ? { embed: options?.confirmMessage, content: null } : { embed: null, content: options?.confirmMessage })
-    return true
+    if (options?.confirmMessage && !options?.deleteAfterReaction)
+      await msg.edit(
+        options?.confirmMessage instanceof MessageEmbed
+          ? { embed: options?.confirmMessage, content: null }
+          : { embed: null, content: options?.confirmMessage }
+      );
+    return true;
   } else {
-    if (options?.denyMessage && !options?.deleteAfterReaction) await msg.edit(options?.denyMessage instanceof MessageEmbed ? { embed: options?.denyMessage, content: null } : { embed: null, content: options?.denyMessage })
-    return false
+    if (options?.denyMessage && !options?.deleteAfterReaction)
+      await msg.edit(
+        options?.denyMessage instanceof MessageEmbed
+          ? { embed: options?.denyMessage, content: null }
+          : { embed: null, content: options?.denyMessage }
+      );
+    return false;
   }
 }
 
@@ -220,60 +272,59 @@ async function confirmation (message: Message, confirmationMessage: string | Mes
  * @param {Function} callback The callback function to execute
  * @returns {Promise<CapturedOutput>} stdout, stderr and callback outputs
  */
-async function captureOutput (callback: Function): Promise<CapturedOutput> {
+async function captureOutput(callback: Function): Promise<CapturedOutput> {
   return await new Promise((resolve, reject) => {
-    const oldProcess = { ...process }
-    let stdout = ''
-    let stderr = ''
+    const oldProcess = { ...process };
+    let stdout = "";
+    let stderr = "";
 
     // overwrite stdout write function
     process.stdout.write = (str: string) => {
-      stdout += str
-      return true
-    }
+      stdout += str;
+      return true;
+    };
 
     // overwrite stderr write function
     process.stderr.write = (str: string) => {
-      stderr += str
-      return true
-    }
+      stderr += str;
+      return true;
+    };
 
     try {
-      const c = callback()
+      const c = callback();
 
-      delete process.stdout.write
-      process.stdout.write = oldProcess.stdout.write
+      delete process.stdout.write;
+      process.stdout.write = oldProcess.stdout.write;
 
-      delete process.stderr.write
-      process.stderr.write = oldProcess.stderr.write
+      delete process.stderr.write;
+      process.stderr.write = oldProcess.stderr.write;
 
       return c
         .catch((c: Error) => reject({ stdout, stderr, callbackOutput: c })) // eslint-disable-line prefer-promise-reject-errors
-        .then((callbackOutput: any) => resolve({ stdout, stderr, callbackOutput }))
+        .then((callbackOutput: any) =>
+          resolve({ stdout, stderr, callbackOutput })
+        );
     } catch (error) {
-      delete process.stdout.write
-      process.stdout.write = oldProcess.stdout.write
+      delete process.stdout.write;
+      process.stdout.write = oldProcess.stdout.write;
 
-      delete process.stderr.write
-      process.stderr.write = oldProcess.stderr.write
-      return reject({ stdout, stderr, callbackOutput: error }) // eslint-disable-line prefer-promise-reject-errors
+      delete process.stderr.write;
+      process.stderr.write = oldProcess.stderr.write;
+      return reject({ stdout, stderr, callbackOutput: error }); // eslint-disable-line prefer-promise-reject-errors
     }
-  })
+  });
 }
 
 export {
   pages,
   PageOptions,
-
   matchString,
   MatchStringOptions,
-
   confirmation,
   ConfirmationOptions,
-
   captureOutput,
-  CapturedOutput
-}
+  CapturedOutput,
+};
 
 //
 // Types
@@ -284,48 +335,48 @@ interface PageOptions {
   /** Emojis to use for page controls */
   emojis?: {
     /** Previous page */
-    left?: string
+    left?: string;
     /** Delete the message, stop watching for reactions */
-    end?: string
+    end?: string;
     /** Next page */
-    right?: string
-  }
+    right?: string;
+  };
   /** Timeout */
-  time?: number
+  time?: number;
   /** Which page to start on. Starts with 0 */
-  startPage?: number
+  startPage?: number;
   /** Remove the user's reaction after they add one. Requires the bot to have 'MANAGE_MESSAGES' */
-  removeReaction?: boolean
+  removeReaction?: boolean;
   /** Hide controls if there is only one page */
-  hideControlsSinglePage?: boolean
+  hideControlsSinglePage?: boolean;
   /** Remove reactions after time expires */
-  timeoutRemoveReactions?: boolean
+  timeoutRemoveReactions?: boolean;
   /** Add buttons to jump 5 pages (if there is over 5 pages) */
-  jump5?: boolean
+  jump5?: boolean;
   /** Should the stop button keep the message? */
-  keepOnStop?: boolean
+  keepOnStop?: boolean;
 }
 
 interface MatchStringOptions {
   /** Only return a string if it is a certain % similar */
-  minRating?: number
+  minRating?: number;
 }
 
 interface ConfirmationOptions {
   /** Edit the message after confirming */
-  confirmMessage?: string | MessageEmbed
+  confirmMessage?: string | MessageEmbed;
   /** Edit the message after denying */
-  denyMessage?: string | MessageEmbed
+  denyMessage?: string | MessageEmbed;
   /** Delete the message after receiving a reaction */
-  deleteAfterReaction?: boolean
+  deleteAfterReaction?: boolean;
   /** Timeout */
-  time?: number
+  time?: number;
   /** Keep the reactions upon reacting */
-  keepReactions?: boolean
+  keepReactions?: boolean;
 }
 
 interface CapturedOutput {
-  stdout: string
-  stderr: string
-  callbackOutput: any
+  stdout: string;
+  stderr: string;
+  callbackOutput: any;
 }

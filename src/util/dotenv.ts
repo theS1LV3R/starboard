@@ -1,22 +1,22 @@
-import { config } from 'dotenv'
+import { config } from "dotenv";
 
-config()
+config();
 
-let path: string
+let path: string;
 switch (process.env.NODE_ENV) {
-  case 'production': {
-    path = './.env.production'
-    break
+  case "production": {
+    path = "./.env.production";
+    break;
   }
-  case 'test':
-  case 'testing': {
-    path = './.env.test'
-    break
+  case "test":
+  case "testing": {
+    path = "./.env.test";
+    break;
   }
   default: {
-    path = './.env.development'
-    break
+    path = "./.env.development";
+    break;
   }
 }
 
-config({ path: path })
+config({ path: path });

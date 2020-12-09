@@ -1,11 +1,8 @@
-import Client from '@util/Client'
-import {
-  MessageReaction,
-  User
-} from 'discord.js'
+import Client from "../util/Client";
+import { MessageReaction, User } from "discord.js";
 
 export = (_client: Client, r: MessageReaction, u: User) => {
-  if (u.bot) return
+  if (u.bot) return;
 
   // const sb = r.message.guild.starboards[0]
 
@@ -17,4 +14,4 @@ export = (_client: Client, r: MessageReaction, u: User) => {
   //   r.emoji.name !== emoji
   // ) return
   // console.log('starboard!')
-}
+};
