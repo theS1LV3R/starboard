@@ -30,7 +30,7 @@ export function defaultGuildDocument(id: Snowflake): GuildDocument {
 }
 
 export const clientOptions: ClientOptions = {
-  disableMentions: "all",
+  disableMentions: "everyone",
   startupCooldown: 5000,
   databases: [
     {
