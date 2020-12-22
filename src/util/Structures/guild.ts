@@ -2,7 +2,7 @@ import Client from "@util/Client";
 
 import { Structures, Collection, Snowflake, Guild } from "discord.js";
 
-import { Starboard as SB, StarboardRaw, GuildDocument } from "@types";
+import { Starboard as SB, GuildDocument } from "@types";
 
 import { Starboard } from "./Starboard";
 

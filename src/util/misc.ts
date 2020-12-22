@@ -19,9 +19,6 @@ import { promisify } from "util";
 // - cmds/reload.ts
 // - cmds/shutdown.ts
 //
-// captureOutput:
-// - cmds/eval.ts
-//
 // If you delete this file, you can uninstall the following packages:
 // - string-similarity
 // - @types/string-similarity
@@ -75,101 +72,97 @@ async function pages(
   content: string[] | MessageEmbed[] | Array<string | MessageEmbed>,
   options?: PageOptions
 ): Promise<number> {
-  return new Promise(async (resolve) => {
-    if (!(content instanceof Array))
-      throw new TypeError("Content is not an array");
-    if (!content.length) throw new Error("Content array is empty");
+  if (!(content instanceof Array))
+    throw new TypeError("Content is not an array");
+  if (!content.length) throw new Error("Content array is empty");
 
-    let removeReaction = options?.removeReaction ?? true;
+  let removeReaction = options?.removeReaction ?? true;
 
-    if (!message.guild.me.permissions.has("MANAGE_MESSAGES"))
-      removeReaction = false;
+  if (!message.guild.me.permissions.has("MANAGE_MESSAGES"))
+    removeReaction = false;
 
-    const emojis = {
-      left5: "⏪",
-      left: options?.emojis?.left ?? "⬅",
-      end: options?.emojis?.end ?? "⏹",
-      right: options?.emojis?.right ?? "➡",
-      right5: "⏩",
-    };
+  const emojis = {
+    left5: "⏪",
+    left: options?.emojis?.left ?? "⬅",
+    end: options?.emojis?.end ?? "⏹",
+    right: options?.emojis?.right ?? "➡",
+    right5: "⏩",
+  };
 
-    const time = options?.time ?? 300000;
-    const hideControlsSinglePage = options?.hideControlsSinglePage ?? true;
-    const timeoutRemoveReactions = options?.timeoutRemoveReactions ?? true;
+  const time = options?.time ?? 300000;
+  const hideControlsSinglePage = options?.hideControlsSinglePage ?? true;
+  const timeoutRemoveReactions = options?.timeoutRemoveReactions ?? true;
 
-    const jump5 = (options?.jump5 && content.length > 5) ?? content.length > 5;
+  const jump5 = (options?.jump5 && content.length > 5) ?? content.length > 5;
 
-    if (hideControlsSinglePage && content.length === 1) {
-      message.channel.send(content[0]);
-      return;
-    }
+  if (hideControlsSinglePage && content.length === 1) {
+    message.channel.send(content[0]);
+    return;
+  }
 
-    const filter = (reaction: MessageReaction, user: User): boolean =>
-      (Object.values(emojis).includes(reaction.emoji.name) ||
-        Object.values(emojis).includes(reaction.emoji.id)) &&
-      !user.bot &&
-      user.id === message.author.id;
-    let page: number = options?.startPage || 0;
+  const filter = (reaction: MessageReaction, user: User): boolean =>
+    (Object.values(emojis).includes(reaction.emoji.name) ||
+      Object.values(emojis).includes(reaction.emoji.id)) &&
+    !user.bot &&
+    user.id === message.author.id;
+  let page: number = options?.startPage || 0;
 
-    const msg = await message.channel.send(content[page]);
+  const msg = await message.channel.send(content[page]);
 
-    if (jump5) await msg.react(emojis.left5);
-    await msg.react(emojis.left);
-    await msg.react(emojis.end);
-    await msg.react(emojis.right);
-    if (jump5) await msg.react(emojis.right5);
+  if (jump5) await msg.react(emojis.left5);
+  await msg.react(emojis.left);
+  await msg.react(emojis.end);
+  await msg.react(emojis.right);
+  if (jump5) await msg.react(emojis.right5);
 
-    const collector: ReactionCollector = msg.createReactionCollector(filter, {
-      time: time,
-    });
+  const collector: ReactionCollector = msg.createReactionCollector(filter, {
+    time: time,
+  });
 
-    collector.on(
-      "collect",
-      ({ users, emoji: { id, name } }: MessageReaction, user: User) => {
-        if (emojis.left && (id === emojis.left || name === emojis.left)) {
-          page = page > 0 ? page - 1 : content.length - 1;
-          if (removeReaction) users.remove(user.id);
-        } else if (
-          emojis.right &&
-          (id === emojis.right || name === emojis.right)
-        ) {
-          page = page + 1 < content.length ? page + 1 : 0;
-          if (removeReaction) users.remove(user.id);
-        } else if (emojis.end && (id === emojis.end || name === emojis.end)) {
-          collector.stop();
-          return;
-        } else if (
-          jump5 &&
-          emojis.left5 &&
-          (id === emojis.left5 || name === emojis.left5)
-        ) {
-          page = page - 5 < 0 ? content.length - Math.abs(page - 5) : page - 5;
-          if (removeReaction) users.remove(user.id);
-        } else if (
-          jump5 &&
-          emojis.right5 &&
-          (id === emojis.right5 || name === emojis.right5)
-        ) {
-          page =
-            page + 5 > content.length - 1
-              ? page + 5 - content.length
-              : page + 5;
-          if (removeReaction) users.remove(user.id);
-        }
-
-        if (msg) {
-          if (content[page] instanceof MessageEmbed) msg.edit(content[page]);
-          else msg.edit(content[page], { embed: null });
-        }
+  collector.on(
+    "collect",
+    ({ users, emoji: { id, name } }: MessageReaction, user: User) => {
+      if (emojis.left && (id === emojis.left || name === emojis.left)) {
+        page = page > 0 ? page - 1 : content.length - 1;
+        if (removeReaction) users.remove(user.id);
+      } else if (
+        emojis.right &&
+        (id === emojis.right || name === emojis.right)
+      ) {
+        page = page + 1 < content.length ? page + 1 : 0;
+        if (removeReaction) users.remove(user.id);
+      } else if (emojis.end && (id === emojis.end || name === emojis.end)) {
+        collector.stop();
+        return;
+      } else if (
+        jump5 &&
+        emojis.left5 &&
+        (id === emojis.left5 || name === emojis.left5)
+      ) {
+        page = page - 5 < 0 ? content.length - Math.abs(page - 5) : page - 5;
+        if (removeReaction) users.remove(user.id);
+      } else if (
+        jump5 &&
+        emojis.right5 &&
+        (id === emojis.right5 || name === emojis.right5)
+      ) {
+        page =
+          page + 5 > content.length - 1 ? page + 5 - content.length : page + 5;
+        if (removeReaction) users.remove(user.id);
       }
-    );
 
-    collector.on("end", (_, reason) => {
-      if (!options?.keepOnStop) msg.delete();
-      if (timeoutRemoveReactions && options?.keepOnStop)
-        msg.reactions.removeAll();
-      if (reason !== "time") resolve(page);
-    });
+      if (msg) {
+        if (content[page] instanceof MessageEmbed) msg.edit(content[page]);
+        else msg.edit(content[page], { embed: null });
+      }
+    }
+  );
+
+  collector.on("end", (_, reason) => {
+    if (!options?.keepOnStop) msg.delete();
+    if (timeoutRemoveReactions && options?.keepOnStop)
+      msg.reactions.removeAll();
+    if (reason !== "time") return page;
   });
 }
 
@@ -267,54 +260,6 @@ async function confirmation(
   }
 }
 
-/**
- * Capture stdout and stderr while executing a function
- * @param {Function} callback The callback function to execute
- * @returns {Promise<CapturedOutput>} stdout, stderr and callback outputs
- */
-async function captureOutput(callback: Function): Promise<CapturedOutput> {
-  return await new Promise((resolve, reject) => {
-    const oldProcess = { ...process };
-    let stdout = "";
-    let stderr = "";
-
-    // overwrite stdout write function
-    process.stdout.write = (str: string) => {
-      stdout += str;
-      return true;
-    };
-
-    // overwrite stderr write function
-    process.stderr.write = (str: string) => {
-      stderr += str;
-      return true;
-    };
-
-    try {
-      const c = callback();
-
-      delete process.stdout.write;
-      process.stdout.write = oldProcess.stdout.write;
-
-      delete process.stderr.write;
-      process.stderr.write = oldProcess.stderr.write;
-
-      return c
-        .catch((c: Error) => reject({ stdout, stderr, callbackOutput: c })) // eslint-disable-line prefer-promise-reject-errors
-        .then((callbackOutput: any) =>
-          resolve({ stdout, stderr, callbackOutput })
-        );
-    } catch (error) {
-      delete process.stdout.write;
-      process.stdout.write = oldProcess.stdout.write;
-
-      delete process.stderr.write;
-      process.stderr.write = oldProcess.stderr.write;
-      return reject({ stdout, stderr, callbackOutput: error }); // eslint-disable-line prefer-promise-reject-errors
-    }
-  });
-}
-
 export {
   pages,
   PageOptions,
@@ -322,8 +267,6 @@ export {
   MatchStringOptions,
   confirmation,
   ConfirmationOptions,
-  captureOutput,
-  CapturedOutput,
 };
 
 //
@@ -373,10 +316,4 @@ interface ConfirmationOptions {
   time?: number;
   /** Keep the reactions upon reacting */
   keepReactions?: boolean;
-}
-
-interface CapturedOutput {
-  stdout: string;
-  stderr: string;
-  callbackOutput: any;
 }
