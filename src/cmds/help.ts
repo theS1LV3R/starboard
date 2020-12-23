@@ -9,12 +9,13 @@ import {
   ReactionCollector,
 } from "discord.js";
 import { CommandCategories } from "@types";
+import { eyes, crown } from "../util/emoji.json";
 
 export default new Command(
   {
     name: "help",
     level: 0,
-    skipLoading: true,
+    skipLoading: false,
     help: {
       description: "Get help with commands",
       usage: "[command]",
@@ -23,11 +24,11 @@ export default new Command(
   async (client, message, _args, guild) => {
     const main: Collection<CommandCategories, MainHelpOptions> = new Collection(
       [
-        ["admin", { emoji: ":eyes:", text: "Commands for server admins" }],
+        ["admin", { emoji: eyes, text: "Commands for server admins" }],
         [
           "owner",
           {
-            emoji: ":crown:",
+            emoji: crown,
             display: ({ admins }: Client, { author: { id } }: Message) =>
               admins.has(id),
             text: "Bot admin commands",
@@ -42,8 +43,11 @@ export default new Command(
 
     const msg = await message.channel.send(embed);
 
+    // [key, value] = [, value] = [, { emoji }]
+    // extract emoji from value using destructuring
+
     for (const [, { emoji }] of main) {
-      await msg.react(emoji);
+      await msg.react((emoji as Record<string, string>).unicode);
     }
 
     generatePage(client, { level: 0 });
@@ -60,8 +64,14 @@ function generateMainEmbed(
   for (const [k, v] of fields) {
     if ((v?.display && v?.display(client, message)) ?? true) {
       embed?.description
-        ? (embed.description += `\n${v.emoji} - ${k}: \`${v?.text}\``)
-        : embed.setDescription(`${v.emoji} - ${k}: \`${v?.text}\``);
+        ? (embed.description += `\n${
+            (v.emoji as Record<string, string>).twemoji
+          } - ${k}: \`${v?.text}\``)
+        : embed.setDescription(
+            `${(v.emoji as Record<string, string>).twemoji} - ${k}: \`${
+              v?.text
+            }\``
+          );
     }
   }
   return embed;
@@ -107,19 +117,23 @@ function tabulateEmbed(
   mainPage: Collection<CommandCategories, MainHelpOptions>
 ): void {
   const emojis = mainPage.map(({ emoji }) => emoji);
-  const filter = (reaction: MessageReaction, user: User): boolean =>
-    (Object.values(emojis).includes(reaction.emoji.name) ||
-      Object.values(emojis).includes(reaction.emoji.id)) &&
-    !user.bot &&
-    user.id === message.author.id;
-
+  const filter = (reaction: MessageReaction, user: User): boolean => {
+    let valid = false;
+    for (const emoji of emojis) {
+      valid = valid || (Object.values(emoji).includes(reaction.emoji.name) ||
+        Object.values(emoji).includes(reaction.emoji.id)) &&
+        !user.bot &&
+        user.id === message.author.id;
+    }
+    return valid;
+  };
   const RC = new ReactionCollector(collectorMessage, filter);
 
-  RC.on("collect", (r, _u) => {
+  RC.on("collect", (reaction, _user) => {
     collectorMessage.edit(
       generatePage(client, {
         category: mainPage.find(
-          (c) => c.emoji === r.emoji.id || c.emoji === r.emoji.name
+          (c) => Object.values(c.emoji).includes(reaction.emoji.id) || Object.values(c.emoji).includes(reaction.emoji.name)
         )[0],
       })
     );
@@ -127,7 +141,7 @@ function tabulateEmbed(
 }
 
 interface MainHelpOptions {
-  emoji: string;
+  emoji: { unicode: string; twemoji: string };
   display?: (client: Client, message: Message) => boolean;
   text: string;
 }
