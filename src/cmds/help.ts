@@ -1,147 +1,128 @@
-import Command from "../util/command";
-import Client from "../util/Client";
-import {
-  Collection,
-  User,
-  MessageReaction,
-  Message,
-  MessageEmbed,
-  ReactionCollector,
-} from "discord.js";
-import { CommandCategories } from "@types";
-import { eyes, crown } from "../util/emoji.json";
+import Command, { getLevel } from "../util/command";
+import { constants } from "../setup";
+import { Collection } from "discord.js";
 
-export default new Command(
-  {
-    name: "help",
-    level: 0,
-    skipLoading: false,
-    help: {
-      description: "Get help with commands",
-      usage: "[command]",
-    },
-  },
-  async (client, message, _args, guild) => {
-    const main: Collection<CommandCategories, MainHelpOptions> = new Collection(
-      [
-        ["admin", { emoji: eyes, text: "Commands for server admins" }],
-        [
-          "owner",
-          {
-            emoji: crown,
-            display: ({ admins }: Client, { author: { id } }: Message) =>
-              admins.has(id),
-            text: "Bot admin commands",
-          },
-        ],
-      ]
-    );
+export default new Command({ name: "help" }, async (client, message, args) => {
+  if (args.length > 0) {
+    const command = client.commands.get(args[0]);
 
-    const embed = generateMainEmbed(client, message, main).setFooter(
-      `The prefix for this guild is: ${guild.config.prefix}`
-    );
-
-    const msg = await message.channel.send(embed);
-
-    // [key, value] = [, value] = [, { emoji }]
-    // extract emoji from value using destructuring
-
-    for (const [, { emoji }] of main) {
-      await msg.react((emoji as Record<string, string>).unicode);
-    }
-
-    generatePage(client, { level: 0 });
-    tabulateEmbed(client, msg, message, main);
-  }
-);
-
-function generateMainEmbed(
-  client: Client,
-  message: Message,
-  fields: Collection<string, MainHelpOptions>
-): MessageEmbed {
-  const embed = client.defaultEmbed();
-  for (const [k, v] of fields) {
-    if ((v?.display && v?.display(client, message)) ?? true) {
-      embed?.description
-        ? (embed.description += `\n${
-            (v.emoji as Record<string, string>).twemoji
-          } - ${k}: \`${v?.text}\``)
-        : embed.setDescription(
-            `${(v.emoji as Record<string, string>).twemoji} - ${k}: \`${
-              v?.text
-            }\``
-          );
-    }
-  }
-  return embed;
-}
-
-function generatePage(
-  client: Client,
-  filter: { level?: number; category?: string } = {}
-): MessageEmbed {
-  const cmdList = client.commands.filter((c) => {
-    if (filter.level !== null && !filter.category)
-      return c.config?.level === filter.level;
-    if (filter.level === null && filter.category)
-      return c.config?.help?.category === filter.category;
-    if (filter.level !== null && filter.category)
-      return (
-        c.config?.level === filter.level &&
-        c.config?.help?.category === filter.category
+    if (!command)
+      return message.channel.send(
+        client.defaultEmbed().setDescription(":warning: Command not found").setColor(constants.colors.warning)
       );
-    return true;
-  });
 
-  const embed = client.defaultEmbed();
+    const title = `\`${command.config.name}\`${
+      command.config.disabled ? " (Disabled)" : ""
+    }`;
 
-  for (const [cmd, { config }] of cmdList) {
-    const t = `\`${cmd}\` - (${
-      config?.help?.shortDescription ??
-      config?.help?.description ??
-      "This command hasn't been documented yet!"
-    })`;
+    let description = "";
 
-    embed.description
-      ? (embed.description += "\n" + t)
-      : embed.setDescription(t);
-  }
-  return embed;
-}
+    if (command.config?.help?.category)
+      description += `\nCategory: ${command.config.help.category}`;
+    if (command.config?.help?.usage)
+      description += `\nUsage: \`${command.config.name} ${command.config.help.usage}\``;
+    if (command.config.aliases)
+      description += `\nAliases: ${command.config.aliases.join(", ")}`;
+    if (command.config.level)
+      description += `\nMinimum level: ${command.config.level}`;
+    if (command.config.permissions) {
+      description += "\nRequired permissions:";
 
-function tabulateEmbed(
-  client: Client,
-  collectorMessage: Message,
-  message: Message,
-  mainPage: Collection<CommandCategories, MainHelpOptions>
-): void {
-  const emojis = mainPage.map(({ emoji }) => emoji);
-  const filter = (reaction: MessageReaction, user: User): boolean => {
-    let valid = false;
-    for (const emoji of emojis) {
-      valid = valid || (Object.values(emoji).includes(reaction.emoji.name) ||
-        Object.values(emoji).includes(reaction.emoji.id)) &&
-        !user.bot &&
-        user.id === message.author.id;
+      if (command.config.permissions.bot)
+        description += `\n- Bot permission requirements: ${(command.config
+          .permissions.bot as Array<string>).join(", ")}`;
+      if (command.config.permissions.user)
+        description += `\n- User permission requirements: ${(command.config
+          .permissions.user as Array<string>).join(", ")}`;
     }
-    return valid;
-  };
-  const RC = new ReactionCollector(collectorMessage, filter);
 
-  RC.on("collect", (reaction, _user) => {
-    collectorMessage.edit(
-      generatePage(client, {
-        category: mainPage.find(
-          (c) => Object.values(c.emoji).includes(reaction.emoji.id) || Object.values(c.emoji).includes(reaction.emoji.name)
-        )[0],
-      })
+    if (command.config?.help?.description)
+      description += `\n\n${command.config.help.description}`;
+
+    const embed = client
+      .defaultEmbed()
+      .setDescription(
+        description.length > 0
+          ? description
+          : "No params or help stuff added to command"
+      )
+      .setTitle(title);
+
+    await message.channel.send(embed);
+  } else {
+    const commands = client.commands.filter(
+      (command) => !command.config?.help?.hidden
     );
-  });
-}
+    const categories = new Collection<string, Command[]>();
 
-interface MainHelpOptions {
-  emoji: { unicode: string; twemoji: string };
-  display?: (client: Client, message: Message) => boolean;
-  text: string;
-}
+    const userLevel = getLevel(message.member);
+
+    if (userLevel == 3) {
+      categories.set(
+        "bot owners",
+        Array.from(
+          commands
+            .filter(
+              (command) => command.config.level && command.config.level === 3
+            )
+            .values()
+        )
+      );
+    }
+
+    if (userLevel >= 2) {
+      categories.set(
+        "admins",
+        Array.from(
+          commands
+            .filter(
+              (command) => command.config.level && command.config.level === 2
+            )
+            .values()
+        )
+      );
+    }
+
+    if (userLevel >= 1) {
+      categories.set(
+        "other",
+        Array.from(
+          commands
+            .filter(
+              (command) => command.config.level && command.config.level === 1
+            )
+            .values()
+        )
+      );
+    }
+
+    categories.set(
+      "no level",
+      Array.from(commands.filter((command) => !command.config.level).values())
+    );
+    const embed = client.defaultEmbed().setTitle("Help menu");
+
+    for (const [category, _commands] of categories) {
+      if (_commands.length === 0) continue;
+
+      const commandList: Array<string> = [];
+      for (const command of _commands) {
+        commandList.push(
+          `\`${command.config.name}\`${
+            command.config.disabled ? " **(Disabled)**" : ""
+          } - ${
+            command.config?.help?.shortDescription
+              ? command.config.help.shortDescription
+              : "No short description configured"
+          }`
+        );
+      }
+      embed.addField(
+        category.charAt(0).toLocaleUpperCase() + category.slice(1),
+        `- ${commandList.join("\n- ")}`
+      );
+    }
+
+    await message.channel.send(embed);
+  }
+});

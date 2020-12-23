@@ -9,6 +9,7 @@ export const constants = {
   prefix: "!",
   colors: {
     default: "#286ece",
+    warning: "#ED6A12"
   },
   errors: {
     generic: ":x: An error occurred.",
