@@ -68,10 +68,10 @@ function generateMainEmbed(
 }
 
 function generatePage(
-  { commands, defaultEmbed }: Client,
+  client: Client,
   filter: { level?: number; category?: string } = {}
 ): MessageEmbed {
-  const cmdList = commands.filter((c) => {
+  const cmdList = client.commands.filter((c) => {
     if (filter.level !== null && !filter.category)
       return c.config?.level === filter.level;
     if (filter.level === null && filter.category)
@@ -84,7 +84,7 @@ function generatePage(
     return true;
   });
 
-  const embed = defaultEmbed();
+  const embed = client.defaultEmbed();
 
   for (const [cmd, { config }] of cmdList) {
     const t = `\`${cmd}\` - (${
