@@ -49,13 +49,19 @@ export = async (client: Client, message: Message): Promise<void | Message> => {
       m.push(
         "You are missing:",
         ...user.toArray(false).map((p) => `> \`${p as string}\``),
-        `**Required**: \`${user.bitfield}\``
+        `**Required**: \`${user
+          .toArray(false)
+          .map((p) => `\`${p}\``)
+          .join(", ")}\``
       );
     if (bot.toArray().length)
       m.push(
         "I am missing:",
         ...bot.toArray(false).map((p) => `> \`${p as string}\``),
-        `**Required**: \`${bot.bitfield}\``
+        `**Required**: ${bot
+          .toArray(false)
+          .map((p) => `\`${p}\``)
+          .join(", ")}`
       );
 
     return message.channel.send(m.join("\n"));
@@ -86,25 +92,26 @@ export = async (client: Client, message: Message): Promise<void | Message> => {
  * @param {GuildMember} user The user to check permissions for
  */
 function checkPermissions(
-  { config: { permissions } }: Command,
-  {
-    guild: {
-      me: { permissions: botPerms },
-    },
-    permissions: userPerms,
-  }: GuildMember
+  command: Command,
+  member: GuildMember
 ): { user: Permissions; bot: Permissions } {
-  const bot: PermissionResolvable = new Permissions(permissions?.bot ?? 0);
-  const user: PermissionResolvable = new Permissions(permissions?.user ?? 0);
+  const userPerms = member.permissions;
+  const botPerms = member.guild.me.permissions;
+
+  const requiredPerms = {
+    bot: new Permissions(command.config?.permissions?.bot ?? 0),
+    user: new Permissions(command.config?.permissions?.user ?? 0),
+  };
 
   const missing = {
     user: new Permissions(),
     bot: new Permissions(),
   };
 
-  if (!userPerms.has(user))
-    missing.user = new Permissions(userPerms.missing(user));
-  if (!botPerms.has(bot)) missing.bot = new Permissions(botPerms.missing(bot));
+  if (!userPerms.has(requiredPerms.user))
+    missing.user = new Permissions(userPerms.missing(requiredPerms.user));
+  if (!botPerms.has(requiredPerms.bot))
+    missing.bot = new Permissions(botPerms.missing(requiredPerms.bot));
 
   return missing;
 }
