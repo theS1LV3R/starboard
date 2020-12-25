@@ -41,6 +41,42 @@ import { promisify } from "util";
 export const wait = promisify(setTimeout);
 
 /**
+ * A simple text cleaner.
+ * @param {string} text - Text to clean
+ * @returns {string} Cleaned text
+ * @link https://github.com/Costpap/CostBot/blob/master/src/utils/misc.ts#L20-L38
+ * @example
+ * import { clean } from './utils/misc';
+ *
+ * const code: string = args.join(', ');
+ * const evaled = await eval(code);
+ *
+ * console.log(clean(evaled));
+ */
+export const clean = (text: string): string => {
+  if (typeof text === 'string') {
+      return text.replace(/`/g, '`' + String.fromCharCode(8203)).replace(/@/g, '@' + String.fromCharCode(8203));
+  } else {
+      return text;
+  }
+};
+
+/**
+ * Parses a Markdown codeblock and returns the text inside of it.
+ * @link https://github.com/Costpap/CostBot/blob/master/src/utils/misc.ts#L40-L52
+ * @param {string} script - The code to parse
+ * @returns {string} Code without codeblock
+ */
+export const parseCodeblock = (script: string): string => {
+  const cbr = /^(([ \t]*`{3,4})([^\n]*)([\s\S]+?)(^[ \t]*\2))/gm;
+  const result: RegExpExecArray = cbr.exec(script);
+  if (result) {
+      return result[4];
+  }
+  return script;
+};
+
+/**
  * Paginate a message
  * @param {Message} message Discord.js Messsage object
  * @param {string[] | MessageEmbed[]} content The text to paginate
