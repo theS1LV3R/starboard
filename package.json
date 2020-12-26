@@ -15,7 +15,7 @@
   },
   "scripts": {
     "dev": "nodemon",
-    "dev:inspect": "nodemon --exec node --inspect --require ts-node/register src/index.ts",
+    "dev:inspect": "nodemon --exec node --trace-warnings --inspect --require ts-node/register src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },
