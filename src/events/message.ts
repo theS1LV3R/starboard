@@ -1,9 +1,9 @@
 import { defaultGuildDocument } from "../setup";
 import {
   Message,
-  PermissionResolvable,
   GuildMember,
   Permissions,
+  TextChannel,
 } from "discord.js";
 import { GuildDocument } from "../types";
 import Command, { getLevel } from "../util/Command";
@@ -39,7 +39,7 @@ export = async (client: Client, message: Message): Promise<void | Message> => {
       "🔒 You do not have permission to use this command."
     );
 
-  const { user, bot } = checkPermissions(cmd, message.member);
+  const { user, bot } = checkPermissions(cmd, message.member, message.channel);
   if (user.toArray().length || bot.toArray().length) {
     const m: string[] = [
       ":x: The command could not be preformed because one or more permissions are missing.",
@@ -89,19 +89,37 @@ export = async (client: Client, message: Message): Promise<void | Message> => {
 /**
  * Get missing permissions for the bot and the user
  * @param {Command} command The command to check for
- * @param {GuildMember} user The user to check permissions for
+ * @param {GuildMember} member The user to check permissions for
+ * @param {TextChannel} channel What channel the command was used in
  */
 function checkPermissions(
   command: Command,
-  member: GuildMember
+  member: GuildMember,
+  channel: TextChannel
 ): { user: Permissions; bot: Permissions } {
+  const bot = member.guild.me;
+
   const userPerms = member.permissions;
-  const botPerms = member.guild.me.permissions;
+  let botPerms = bot.permissions;
 
   const requiredPerms = {
     bot: new Permissions(command.config?.permissions?.bot ?? 0),
     user: new Permissions(command.config?.permissions?.user ?? 0),
   };
+
+  const channelOverwrites = channel.permissionOverwrites.array();
+
+  for (const permissionOverwrite of channelOverwrites) {
+    if (
+      (permissionOverwrite.type === "role" &&
+        bot.roles.cache.has(permissionOverwrite.id)) ||
+      (permissionOverwrite.type === "member" &&
+        bot.id === permissionOverwrite.id)
+    ) {
+      botPerms = botPerms.remove(permissionOverwrite.deny);
+      botPerms = botPerms.add(permissionOverwrite.allow);
+    }
+  }
 
   const missing = {
     user: new Permissions(),
