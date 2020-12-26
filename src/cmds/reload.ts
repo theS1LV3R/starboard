@@ -6,6 +6,7 @@ export default new Command(
   {
     name: "reload",
     level: 3,
+    permissions: { bot: ["SEND_MESSAGES"] },
     help: {
       description: "Reload a command",
       category: "admin",

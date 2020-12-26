@@ -4,6 +4,9 @@ export default new Command(
   {
     name: "commands",
     aliases: ["listcommands", "commandlist"],
+    permissions: {
+      bot: ["EMBED_LINKS", "SEND_MESSAGES"]
+    },
     help: {
       description: "Get a list of commands",
       category: "other",

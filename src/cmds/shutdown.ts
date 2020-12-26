@@ -6,6 +6,7 @@ export default new Command(
   {
     name: "shutdown",
     aliases: ["stop"],
+    permissions: { bot: ["SEND_MESSAGES"] },
     level: 3,
   },
   async (_client, message) => {

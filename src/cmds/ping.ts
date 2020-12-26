@@ -4,6 +4,7 @@ export default new Command(
   {
     name: "ping",
     aliases: ["hello"],
+    permissions: { bot: "SEND_MESSAGES" },
     help: {
       category: "other",
     },

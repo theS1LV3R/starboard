@@ -7,7 +7,7 @@ export default new Command(
     name: "eval",
     aliases: ["basic_eval", "basiceval"],
     permissions: {
-      bot: ["EMBED_LINKS"]
+      bot: ["EMBED_LINKS", "SEND_MESSAGES"]
     },
     level: 3,
     disabled: false,
