@@ -3,7 +3,16 @@ import { constants } from "../setup";
 import { Collection } from "discord.js";
 
 export default new Command(
-  { name: "help", permissions: { bot: ["EMBED_LINKS", "SEND_MESSAGES"] } },
+  {
+    name: "help",
+    permissions: { bot: ["EMBED_LINKS", "SEND_MESSAGES"] },
+    help: {
+      shortDescription: "Get a list of commands",
+      description: "Gets a list of commands the current user can run.",
+      category: "util",
+      usage: "[command]",
+    },
+  },
   async (client, message, args) => {
     if (args.length > 0) {
       const command = client.commands.get(args[0]);

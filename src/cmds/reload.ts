@@ -8,8 +8,10 @@ export default new Command(
     level: 3,
     permissions: { bot: ["SEND_MESSAGES"] },
     help: {
-      description: "Reload a command",
-      category: "admin",
+      shortDescription: "Reload a command",
+      description:
+        "Reloads a command, updating it to include any changes to the file.",
+      category: "bot admin",
     },
   },
   async (client, message, args) => {

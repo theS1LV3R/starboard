@@ -6,7 +6,10 @@ export default new Command(
     aliases: ["hello"],
     permissions: { bot: "SEND_MESSAGES" },
     help: {
-      category: "other",
+      shortDescription: "Get current bot delay",
+      description:
+        "Gets the current bot delay. Useful for checking for slowness or discord API errors.",
+      category: "util",
     },
   },
   async (client, message) => {

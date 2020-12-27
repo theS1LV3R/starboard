@@ -6,11 +6,18 @@ export default new Command(
   {
     name: "eval",
     aliases: ["basic_eval", "basiceval"],
-    permissions: {
-      bot: ["EMBED_LINKS", "SEND_MESSAGES"]
-    },
     level: 3,
+    permissions: {
+      bot: ["EMBED_LINKS", "SEND_MESSAGES"],
+    },
     disabled: false,
+    help: {
+      shortDescription: "Run JS code",
+      description:
+        "Runs JS code. Has access to the message sent, the client, and any argumants.",
+      usage: `<js code>`,
+      category: "bot admin",
+    },
   },
   async (client, message, args) => {
     const startTime: number = Date.now();
