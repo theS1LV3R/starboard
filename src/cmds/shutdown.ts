@@ -14,7 +14,7 @@ export default new Command(
     },
     level: 3,
   },
-  async (_client, message) => {
+  async (client, message) => {
     const question = ":warning: Are you sure you would like to stop the bot?";
     const yes = "Shutting down...";
     const no = "Shutdown cancelled.";
@@ -31,6 +31,8 @@ export default new Command(
         message.author.tag
       }} on ${new Date()}}`
     );
+    client.destroy();
+    console.log("Client destroyed, exiting process...");
     process.exit(0);
   }
 );
