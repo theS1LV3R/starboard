@@ -1,8 +1,23 @@
 {
-  "name": "ts-template",
+  "name": "starbob",
   "version": "1.0.0",
-  "main": "src/index.ts",
+  "description": "A discord bot for having a starboard",
+  "main": "dist/index.js",
+  "types": "src/types/index.ts",
   "license": "MIT",
+  "repository": "https://github.com/theS1LV3R/starboard",
+  "bugs": "https://github.com/theS1LV3R/issues",
+  "homepage": "https://github.com/theS1LV3R/issues",
+  "author": "S1LV3R <s1lv3r@corax.team> (https://s1lv3r.codes)",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon src/index.ts",
+    "dev:inspect": "nodemon --exec node --trace-warnings --inspect --require ts-node/register src/index.ts",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "build": "tsc",
+    "start": "node"
+  },
   "dependencies": {
     "chalk": "^4.1.0",
     "discord.js": "^12.5.1",
@@ -12,12 +27,6 @@
     "mongodb": "^3.6.3",
     "node-fetch": "^2.6.1",
     "string-similarity": "^4.0.3"
-  },
-  "scripts": {
-    "dev": "nodemon",
-    "dev:inspect": "nodemon --exec node --trace-warnings --inspect --require ts-node/register src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js"
   },
   "devDependencies": {
     "@types/dotenv": "^8.2.0",
