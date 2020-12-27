@@ -1,7 +1,7 @@
 import Client from "../util/Client";
 import { MessageReaction, User } from "discord.js";
 
-export = (_client: Client, r: MessageReaction, u: User) => {
+export = async (_client: Client, r: MessageReaction, u: User): Promise<void> => {
   if (u.bot) return;
 
   // const sb = r.message.guild.starboards[0]

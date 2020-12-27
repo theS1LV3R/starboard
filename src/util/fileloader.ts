@@ -1,5 +1,4 @@
 import { join, basename } from "path";
-import { promisify } from "util";
 import { readdir, stat, Stats } from "fs-extra";
 
 import Client from "./Client";
