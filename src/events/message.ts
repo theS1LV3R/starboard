@@ -1,17 +1,16 @@
 import { defaultGuildDocument } from "../setup";
-import {
-  Message,
-  GuildMember,
-  Permissions,
-  TextChannel,
-} from "discord.js";
+import { Message, GuildMember, Permissions, TextChannel } from "discord.js";
 import { GuildDocument } from "../types";
 import Command, { getLevel } from "../util/Command";
 import Client from "../util/Client";
+import { parse } from "discord-command-parser";
 
 export = async (client: Client, message: Message): Promise<void | Message> => {
+  const mentionPrefixes = [`<@${client.user.id}>`, `<@!${client.user.id}>`];
+
   if (!client.db)
     return await message.channel.send(":x: A database error occurred!");
+
   if (message.author.bot) return;
   if (message.channel.type !== "text") return;
 
@@ -22,16 +21,21 @@ export = async (client: Client, message: Message): Promise<void | Message> => {
     client.db.insert("guilds", guild);
   }
 
-  if (!message.content.startsWith(guild.config.prefix)) return;
+  const parsedMessage = parse<Message>(
+    message,
+    [guild.config.prefix, ...mentionPrefixes],
+    {
+      allowSpaceBeforeCommand: true,
+    }
+  );
 
-  const args: string[] = message.content
-    .slice(guild.config.prefix.length)
-    .split(" ");
-  const command: string = args.shift().toLowerCase();
+  if (!parsedMessage.success) return;
 
   const cmd: Command | null =
-    client.commands.get(command) ||
-    client.commands.find((c: Command) => c.config?.aliases?.includes(command));
+    client.commands.get(parsedMessage.command) ||
+    client.commands.find((c: Command) =>
+      c.config?.aliases?.includes(parsedMessage.command)
+    );
   if (!cmd) return;
 
   if (cmd.config?.level > getLevel(message.member))
@@ -79,7 +83,7 @@ export = async (client: Client, message: Message): Promise<void | Message> => {
     );
 
   try {
-    cmd.run(client, message, args, guild);
+    cmd.run(client, message, parsedMessage.arguments, guild);
   } catch (err) {
     console.error(err);
     message.channel.send(client.constants.errors.generic);

@@ -1082,6 +1082,11 @@ dir-glob@^3.0.1:
   dependencies:
     path-type "^4.0.0"
 
+discord-command-parser@^1.5.3:
+  version "1.5.3"
+  resolved "https://registry.yarnpkg.com/discord-command-parser/-/discord-command-parser-1.5.3.tgz#ba27097aa0976fa9287ea81f8d8cdd82f2887317"
+  integrity sha512-YWgalkrbly0dJCyLw7p9SX3RC7HIxOrSTz/8vKjlmYPyyZmMCGmKwpXu6HkPXRZ20L6QqftVWigSw6fDK2zemg==
+
 discord.js@^12.5.1:
   version "12.5.1"
   resolved "https://registry.yarnpkg.com/discord.js/-/discord.js-12.5.1.tgz#992b45753e3815526a279914ccc281d3496f5990"
