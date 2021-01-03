@@ -1,4 +1,4 @@
-import Command from "../util/command";
+import Command from "../util/Command";
 import chalk from "chalk";
 import { confirmation } from "../util/misc";
 

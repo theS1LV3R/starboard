@@ -1,5 +1,5 @@
 /* eslint @typescript-eslint/no-dynamic-delete: 0, @typescript-eslint/no-var-requires: 0 */
-import Command from "../util/command";
+import Command from "../util/Command";
 import { confirmation } from "../util/misc";
 
 export default new Command(

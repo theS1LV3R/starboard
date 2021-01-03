@@ -1,4 +1,4 @@
-import Command, { getLevel } from "../util/command";
+import Command, { getLevel } from "../util/Command";
 import { constants } from "../setup";
 import { Collection } from "discord.js";
 

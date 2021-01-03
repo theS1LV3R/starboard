@@ -1,4 +1,4 @@
-import Command from "../util/command";
+import Command from "../util/Command";
 import Client from "../util/Client";
 import {
   Collection,

@@ -1,4 +1,4 @@
-import Command from "../util/command";
+import Command from "../util/Command";
 import { clean, parseCodeblock } from "../util/misc";
 import { inspect } from "util";
 
