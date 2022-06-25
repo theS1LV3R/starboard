@@ -27,7 +27,7 @@
     "fs-extra": "^10.0.0",
     "module-alias": "^2.2.2",
     "mongodb": "^3.6.9",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.7",
     "string-similarity": "^4.0.4"
   },
   "devDependencies": {
